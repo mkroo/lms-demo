@@ -9,7 +9,7 @@ class CustomUserDetails(
     private val user: User
 ) : UserDetails {
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return mutableListOf(SimpleGrantedAuthority(user.userType.name))
+        return mutableListOf(SimpleGrantedAuthority(user.role.name))
     }
 
     override fun getPassword(): String {

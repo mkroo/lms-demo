@@ -2,7 +2,7 @@ package com.mkroo.lmsdemo.application
 
 import com.mkroo.lmsdemo.dao.UserRepository
 import com.mkroo.lmsdemo.domain.User
-import com.mkroo.lmsdemo.domain.UserType
+import com.mkroo.lmsdemo.domain.UserRole
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -23,7 +23,7 @@ class CustomUserDetailsServiceTest : BehaviorSpec({
                 email = email,
                 phoneNumber = "010-1234-5678",
                 encodedPassword = "encodedPassword",
-                userType = UserType.STUDENT
+                role = UserRole.STUDENT
             )
             every { userRepository.findByEmail(email) } returns user
 

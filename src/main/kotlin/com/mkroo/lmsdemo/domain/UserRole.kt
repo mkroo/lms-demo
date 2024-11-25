@@ -1,5 +1,5 @@
 package com.mkroo.lmsdemo.domain
 
-enum class UserType {
+enum class UserRole {
     STUDENT, TEACHER
 }

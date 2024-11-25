@@ -1,6 +1,6 @@
 package com.mkroo.lmsdemo.dto
 
-import com.mkroo.lmsdemo.domain.UserType
+import com.mkroo.lmsdemo.domain.UserRole
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 
@@ -18,6 +18,6 @@ data class RegisterUserRequest(
     @field:NotBlank(message = "Password is required")
     val password: String,
 
-    @field:NotBlank(message = "User type is required")
-    val userType: UserType
+    @field:NotBlank(message = "User role is required")
+    val role: UserRole
 )

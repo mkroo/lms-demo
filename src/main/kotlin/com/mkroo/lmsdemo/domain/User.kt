@@ -10,7 +10,7 @@ class User(
     val phoneNumber: String,
     val encodedPassword: String,
     @Enumerated(EnumType.STRING)
-    val userType: UserType
+    val role: UserRole
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

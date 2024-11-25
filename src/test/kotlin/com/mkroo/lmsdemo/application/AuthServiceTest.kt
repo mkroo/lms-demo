@@ -2,7 +2,7 @@ package com.mkroo.lmsdemo.application
 
 import com.mkroo.lmsdemo.dao.UserRepository
 import com.mkroo.lmsdemo.domain.PasswordValidator
-import com.mkroo.lmsdemo.domain.UserType
+import com.mkroo.lmsdemo.domain.UserRole
 import com.mkroo.lmsdemo.dto.RegisterUserRequest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -29,7 +29,7 @@ class AuthServiceTest : BehaviorSpec({
             email = "test@gmail.com",
             phoneNumber = "010-1234-5678",
             password = "password123",
-            userType = UserType.STUDENT
+            role = UserRole.STUDENT
         )
 
         every { userRepository.existsByEmail(request.email) } returns false
@@ -85,7 +85,7 @@ class AuthServiceTest : BehaviorSpec({
             email = "test@gmail.com",
             phoneNumber = "010-1234-5678",
             password = "password123",
-            userType = UserType.STUDENT
+            role = UserRole.STUDENT
         )
 
         every { userRepository.existsByEmail(request.email) } returns false

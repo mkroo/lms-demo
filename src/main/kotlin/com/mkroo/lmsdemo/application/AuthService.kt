@@ -28,7 +28,7 @@ class AuthService(
             email = request.email,
             phoneNumber = request.phoneNumber,
             encodedPassword = encodedPassword,
-            userType = request.userType
+            role = request.role
         )
 
         userRepository.save(user)
