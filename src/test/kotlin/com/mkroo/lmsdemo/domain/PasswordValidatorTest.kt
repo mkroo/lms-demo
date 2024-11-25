@@ -1,6 +1,5 @@
 package com.mkroo.lmsdemo.domain
 
-import com.mkroo.lmsdemo.domain.PasswordValidator
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 
