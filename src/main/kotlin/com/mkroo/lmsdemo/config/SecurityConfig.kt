@@ -17,7 +17,7 @@ class SecurityConfig {
         return http
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/register").permitAll()
+                    .requestMatchers("/register", "/login").permitAll()
                     .anyRequest().authenticated()
             }
             .formLogin(FormLoginConfigurer<HttpSecurity>::disable)
