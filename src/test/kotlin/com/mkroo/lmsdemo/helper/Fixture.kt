@@ -1,6 +1,7 @@
 package com.mkroo.lmsdemo.helper
 
 import com.mkroo.lmsdemo.domain.User
+import com.mkroo.lmsdemo.domain.UserRole
 import com.navercorp.fixturemonkey.FixtureMonkey
 import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector
 import com.navercorp.fixturemonkey.kotlin.giveMeBuilder
@@ -19,6 +20,28 @@ object Fixture {
             .setExp(User::name, Arbitraries.strings().alpha())
             .setExp(User::email, emailArbitrary)
             .setExp(User::phoneNumber, Arbitraries.strings().numeric())
+
+        return builder.sample()
+    }
+
+    fun getTeacher(): User {
+        val builder = fixtureMonkey.giveMeBuilder<User>()
+            .setExp(User::id, Arbitraries.longs().greaterOrEqual(1))
+            .setExp(User::name, Arbitraries.strings().alpha())
+            .setExp(User::email, emailArbitrary)
+            .setExp(User::phoneNumber, Arbitraries.strings().numeric())
+            .setExp(User::role, UserRole.TEACHER)
+
+        return builder.sample()
+    }
+
+    fun getStudent(): User {
+        val builder = fixtureMonkey.giveMeBuilder<User>()
+            .setExp(User::id, Arbitraries.longs().greaterOrEqual(1))
+            .setExp(User::name, Arbitraries.strings().alpha())
+            .setExp(User::email, emailArbitrary)
+            .setExp(User::phoneNumber, Arbitraries.strings().numeric())
+            .setExp(User::role, UserRole.STUDENT)
 
         return builder.sample()
     }
