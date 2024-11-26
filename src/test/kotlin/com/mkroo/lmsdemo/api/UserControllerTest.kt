@@ -25,7 +25,7 @@ class UserControllerTest(
                 "email" to "test@gmail.com",
                 "phoneNumber" to "010-1234-5678",
                 "password" to "apple123",
-                "role" to "STUDENT"
+                "role" to "student"
             )
 
             Then("회원가입에 성공한다") {
@@ -43,7 +43,7 @@ class UserControllerTest(
                 "email" to "test@gmail.com",
                 "phoneNumber" to "010-1234-5678",
                 "password" to "apple",
-                "role" to "STUDENT"
+                "role" to "student"
             )
 
             Then("회원가입에 실패한다") {
@@ -63,7 +63,7 @@ class UserControllerTest(
             "email" to "test@gmail.com",
             "phoneNumber" to "010-1234-5678",
             "password" to "apple123",
-            "role" to "STUDENT"
+            "role" to "student"
         )
 
         mockMvc.perform(

@@ -1,103 +1,114 @@
 package com.mkroo.lmsdemo.application
 
-import com.mkroo.lmsdemo.dao.UserRepository
+import com.mkroo.lmsdemo.dao.AccountRepository
 import com.mkroo.lmsdemo.domain.PasswordValidator
-import com.mkroo.lmsdemo.domain.UserRole
+import com.mkroo.lmsdemo.domain.Student
+import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.RegisterUserRequest
+import com.mkroo.lmsdemo.helper.Fixture
+import com.navercorp.fixturemonkey.kotlin.setExp
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.security.crypto.password.PasswordEncoder
 
-class AuthServiceTest : BehaviorSpec({
+@DataJpaTest
+class AuthServiceTest(
+    private val accountRepository: AccountRepository,
+) : BehaviorSpec({
     Given("회원가입을 할 때") {
-        val userRepository = mockk<UserRepository>()
-        val passwordEncoder = mockk<PasswordEncoder>()
-        val passwordValidator = mockk<PasswordValidator>()
+        val passwordEncoder: PasswordEncoder = mockk()
+        val passwordValidator: PasswordValidator = mockk()
 
         val authService = AuthService(
-            userRepository = userRepository,
+            accountRepository = accountRepository,
             passwordEncoder = passwordEncoder,
             passwordValidator = passwordValidator
         )
 
-        val request = RegisterUserRequest(
-            name = "홍길동",
-            email = "test@gmail.com",
-            phoneNumber = "010-1234-5678",
-            password = "password123",
-            role = UserRole.STUDENT
-        )
+        every { passwordValidator.isValid(any()) } returns true
+        every { passwordEncoder.encode(any()) } returns "encodedPassword"
 
-        every { userRepository.existsByEmail(request.email) } returns false
-        every { userRepository.existsByPhoneNumber(request.phoneNumber) } returns false
-        every { passwordValidator.isValid(request.password) } returns true
-        every { passwordEncoder.encode(request.password) } returns "encodedPassword"
-        every { userRepository.save(any()) } returns mockk()
+        When("학생 역할로 생성하면") {
+            val studentRequest: RegisterUserRequest = Fixture
+                .getBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::role, "student")
+                .sample()
 
-        Then("회원가입에 성공한다") {
-            authService.register(request)
+            Then("학생 계정이 생성된다") {
+                authService.register(studentRequest)
 
-            verify { userRepository.save(any()) }
+                val account = accountRepository.findByEmail(studentRequest.email)
+                (account is Student) shouldBe true
+            }
+        }
+
+        When("강사 역할로 생성하면") {
+            val teacherRequest = Fixture
+                .getBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::role, "teacher")
+                .sample()
+
+            Then("강사 계정이 생성된다") {
+                authService.register(teacherRequest)
+
+                val account = accountRepository.findByEmail(teacherRequest.email)
+                (account is Teacher) shouldBe true
+            }
         }
 
         When("이메일이 중복되었다면") {
-            every { userRepository.existsByEmail(request.email) } returns true
+            val duplicateEmailRequestBuilder = Fixture
+                .getBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::email, Fixture.getEmail())
+
+            authService.register(duplicateEmailRequestBuilder.sample())
 
             Then("회원가입에 실패한다") {
-                shouldThrow<IllegalArgumentException> { authService.register(request) }
+                shouldThrow<IllegalArgumentException> { authService.register(duplicateEmailRequestBuilder.sample()) }
             }
         }
 
         When("핸드폰번호가 중복되었다면") {
-            every { userRepository.existsByPhoneNumber(request.phoneNumber) } returns true
+            val duplicateEmailRequestBuilder = Fixture
+                .getBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::phoneNumber, Fixture.getPhoneNumber())
+
+            authService.register(duplicateEmailRequestBuilder.sample())
 
             Then("회원가입에 실패한다") {
-                shouldThrow<IllegalArgumentException> { authService.register(request) }
+                shouldThrow<IllegalArgumentException> { authService.register(duplicateEmailRequestBuilder.sample()) }
             }
         }
 
         When("비밀번호의 형식이 올바르지 않다면") {
+            val request = Fixture.getBuilder<RegisterUserRequest>().sample()
             every { passwordValidator.isValid(request.password) } returns false
 
             Then("회원가입에 실패한다") {
                 shouldThrow<IllegalArgumentException> { authService.register(request) }
             }
         }
-    }
 
-    Given("암호화되지 않은 비밀번호를 전달받았을 때") {
-        val userRepository = mockk<UserRepository>()
-        val passwordEncoder = spyk<PasswordEncoder>()
-        val passwordValidator = mockk<PasswordValidator>()
+        When("평문 비밀번호를 입력하면") {
+            val plainPassword = "password123"
+            val encodedPassword = "encodedPassword"
+            val request = Fixture.getBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::password, plainPassword)
+                .sample()
 
-        val authService = AuthService(
-            userRepository = userRepository,
-            passwordEncoder = passwordEncoder,
-            passwordValidator = passwordValidator
-        )
+            every { passwordEncoder.encode(plainPassword) } returns encodedPassword
 
-        val request = RegisterUserRequest(
-            name = "홍길동",
-            email = "test@gmail.com",
-            phoneNumber = "010-1234-5678",
-            password = "password123",
-            role = UserRole.STUDENT
-        )
+            Then("암호화되어 저장된다") {
+                authService.register(request)
 
-        every { userRepository.existsByEmail(request.email) } returns false
-        every { userRepository.existsByPhoneNumber(request.phoneNumber) } returns false
-        every { passwordValidator.isValid(request.password) } returns true
-        every { passwordEncoder.encode(request.password) } returns "encodedPassword"
-        every { userRepository.save(any()) } returns mockk()
+                val account = accountRepository.findByEmail(request.email)
 
-        Then("비밀번호를 암호화한다") {
-            authService.register(request)
-
-            verify { passwordEncoder.encode(request.password) }
+                account?.encodedPassword shouldBe encodedPassword
+            }
         }
     }
 })

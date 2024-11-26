@@ -1,8 +1,6 @@
 package com.mkroo.lmsdemo.domain
 
-import jakarta.persistence.Entity
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "lectures")
@@ -11,5 +9,5 @@ class Lecture(
     val maxStudentCount: Int,
     val price: Int,
     @ManyToOne
-    val teacher: User,
+    val teacher: Teacher
 ) : AbstractEntity()

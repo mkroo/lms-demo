@@ -1,51 +1,63 @@
 package com.mkroo.lmsdemo.application
 
-import com.mkroo.lmsdemo.dao.UserRepository
-import com.mkroo.lmsdemo.domain.User
+import com.mkroo.lmsdemo.config.PasswordEncoderConfig
+import com.mkroo.lmsdemo.dao.AccountRepository
+import com.mkroo.lmsdemo.domain.Account
+import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.LoginRequest
 import com.mkroo.lmsdemo.dto.LoginResponse
 import com.mkroo.lmsdemo.exception.LoginFailureException
 import com.mkroo.lmsdemo.helper.Fixture
+import com.mkroo.lmsdemo.security.JwtUtils
+import com.navercorp.fixturemonkey.kotlin.setExp
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Import
 import org.springframework.security.crypto.password.PasswordEncoder
 
-class LoginServiceTest : BehaviorSpec({
+@DataJpaTest
+@Import(PasswordEncoderConfig::class)
+class LoginServiceTest(
+    private val accountRepository: AccountRepository,
+    private val passwordEncoder: PasswordEncoder
+) : BehaviorSpec({
     Given("로그인을 시도했을때") {
-        val userRepository: UserRepository = mockk()
-        val passwordEncoder: PasswordEncoder = mockk()
-        val authenticationTokenProvider: AuthenticationTokenProvider = mockk()
+        val jwtUtils: JwtUtils = mockk()
 
         val loginService = LoginService(
-            userRepository = userRepository,
+            accountRepository = accountRepository,
             passwordEncoder = passwordEncoder,
-            authenticationTokenProvider = authenticationTokenProvider
+            jwtUtils = jwtUtils
         )
 
-        val request = LoginRequest(
-            email = Fixture.getEmail(),
-            password = Fixture.getPassword()
-        )
+        When("이메일에 해당하는 계정이 있고") {
+            val plainPassword = Fixture.getPassword()
+            val encodedPassword = passwordEncoder.encode(plainPassword)
 
-        When("이메일에 해당하는 유저가 있고") {
-            val user = Fixture.getUser()
+            val account: Account = Fixture.getBuilder<Teacher>()
+                .setExp(Teacher::encodedPassword, encodedPassword)
+                .sample()
 
-            every { userRepository.findByEmail(request.email) } returns user
+            accountRepository.save(account)
 
             When("비밀번호가 일치하면") {
+                val request = LoginRequest(
+                    email = account.email,
+                    password = plainPassword
+                )
                 val token = "anyToken"
 
-                every { passwordEncoder.matches(request.password, user.encodedPassword) } returns true
-                every { authenticationTokenProvider.issue(user) } returns token
+                every { jwtUtils.issue(account) } returns token
 
-                Then("유저의 토큰을 발급한다") {
+                Then("계정의 토큰을 발급한다") {
                     loginService.login(request)
 
-                    verify { authenticationTokenProvider.issue(user) }
+                    verify { jwtUtils.issue(account) }
                 }
 
                 Then("토큰을 포함한 로그인 응답을 반환한다") {
@@ -55,7 +67,10 @@ class LoginServiceTest : BehaviorSpec({
             }
 
             When("비밀번호가 틀리면") {
-                every { passwordEncoder.matches(request.password, user.encodedPassword) } returns false
+                val request = LoginRequest(
+                    email = account.email,
+                    password = "${plainPassword}!#"
+                )
 
                 Then("로그인 실패 오류가 발생한다") {
                     shouldThrow<LoginFailureException> { loginService.login(request) }
@@ -63,8 +78,11 @@ class LoginServiceTest : BehaviorSpec({
             }
         }
 
-        When("이메일에 해당하는 유저가 없으면") {
-            every { userRepository.findByEmail(request.email) } returns null
+        When("이메일에 해당하는 계정이 없으면") {
+            val request = LoginRequest(
+                email = Fixture.getEmail(),
+                password = Fixture.getPassword()
+            )
 
             Then("로그인 실패 오류가 발생한다") {
                 shouldThrow<LoginFailureException> { loginService.login(request) }

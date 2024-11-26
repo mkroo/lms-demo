@@ -31,6 +31,7 @@ extra["snippetsDir"] = file("build/generated-snippets")
 dependencies {
     val kotestVersion = "5.9.1"
     val kotestExtensionSpringVersion = "1.3.0"
+    val jjwtVersion = "0.11.2"
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -54,6 +55,10 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:${kotestExtensionSpringVersion}")
     testImplementation("com.navercorp.fixturemonkey:fixture-monkey-starter-kotlin:1.0.25")
+
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
 }
 
 kotlin {

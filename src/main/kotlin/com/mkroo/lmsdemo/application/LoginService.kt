@@ -1,26 +1,27 @@
 package com.mkroo.lmsdemo.application
 
-import com.mkroo.lmsdemo.dao.UserRepository
+import com.mkroo.lmsdemo.dao.AccountRepository
 import com.mkroo.lmsdemo.dto.LoginRequest
 import com.mkroo.lmsdemo.dto.LoginResponse
 import com.mkroo.lmsdemo.exception.LoginFailureException
+import com.mkroo.lmsdemo.security.JwtUtils
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 @Service
 class LoginService(
-    private val userRepository: UserRepository,
+    private val accountRepository: AccountRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val authenticationTokenProvider: AuthenticationTokenProvider
+    private val jwtUtils: JwtUtils
 ) {
     fun login(request: LoginRequest) : LoginResponse {
-        val user = userRepository.findByEmail(request.email) ?: throw LoginFailureException("User not found")
+        val account = accountRepository.findByEmail(request.email) ?: throw LoginFailureException("Account not found")
 
-        passwordEncoder.matches(request.password, user.encodedPassword).takeIf { !it }?.let {
+        passwordEncoder.matches(request.password, account.encodedPassword).takeIf { !it }?.let {
             throw LoginFailureException("Wrong password")
         }
 
-        val token = authenticationTokenProvider.issue(user)
+        val token = jwtUtils.issue(account)
 
         return LoginResponse(token)
     }

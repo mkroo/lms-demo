@@ -1,31 +1,29 @@
 package com.mkroo.lmsdemo.application
 
 import com.mkroo.lmsdemo.dao.LectureRepository
-import com.mkroo.lmsdemo.domain.Lecture
-import com.mkroo.lmsdemo.domain.User
-import com.mkroo.lmsdemo.domain.UserRole
+import com.mkroo.lmsdemo.dao.TeacherRepository
+import com.mkroo.lmsdemo.domain.*
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
-import com.mkroo.lmsdemo.exception.NotPermittedException
+import com.mkroo.lmsdemo.security.AccountJwtAuthentication
+import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
 
 @Service
 class LectureOpeningService(
-    private val lectureRepository: LectureRepository
+    private val lectureRepository: LectureRepository,
+    private val teacherRepository: TeacherRepository,
 ) {
-    fun openLecture(teacher: User, request: LectureOpeningRequest) : Lecture {
-        checkPermission(teacher)
+    @Secured("OPEN_LECTURE")
+    fun openLecture(authentication: AccountJwtAuthentication, request: LectureOpeningRequest) : Lecture {
+        val teacher = teacherRepository.findById(authentication.accountId) ?: throw IllegalArgumentException("Teacher must be present")
 
         val lecture = Lecture(
             request.title,
             request.maxStudentCount,
             request.price,
-            teacher
+            teacher = teacher
         )
 
         return lectureRepository.save(lecture)
-    }
-
-    private fun checkPermission(user: User) {
-        if (user.role != UserRole.TEACHER) throw NotPermittedException("강의를 개설할 권한이 없습니다.")
     }
 }

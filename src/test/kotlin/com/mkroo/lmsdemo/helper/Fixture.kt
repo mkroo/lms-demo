@@ -1,61 +1,61 @@
 package com.mkroo.lmsdemo.helper
 
-import com.mkroo.lmsdemo.domain.User
-import com.mkroo.lmsdemo.domain.UserRole
+import com.mkroo.lmsdemo.domain.Account
+import com.mkroo.lmsdemo.dto.RegisterUserRequest
+import com.navercorp.fixturemonkey.ArbitraryBuilder
 import com.navercorp.fixturemonkey.FixtureMonkey
-import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector
+import com.navercorp.fixturemonkey.kotlin.KotlinPlugin
 import com.navercorp.fixturemonkey.kotlin.giveMeBuilder
 import com.navercorp.fixturemonkey.kotlin.setExp
 import net.jqwik.api.Arbitraries
 
 object Fixture {
-    private val fixtureMonkey = FixtureMonkey
+    val fixtureMonkey: FixtureMonkey = FixtureMonkey
         .builder()
-        .objectIntrospector(FieldReflectionArbitraryIntrospector.INSTANCE)
+        .plugin(KotlinPlugin())
+        .register(RegisterUserRequest::class.java) {
+            it.giveMeBuilder<RegisterUserRequest>()
+                .setExp(RegisterUserRequest::name, nameArbitrary())
+                .setExp(RegisterUserRequest::email, emailArbitrary())
+                .setExp(RegisterUserRequest::phoneNumber, phoneNumberArbitrary())
+                .setExp(RegisterUserRequest::password, passwordArbitrary())
+                .setExp(RegisterUserRequest::role, Arbitraries.of("student", "teacher"))
+        }
+        .register(Account::class.java) {
+            it.giveMeBuilder<Account>()
+                .setExp(Account::id, Arbitraries.longs().greaterOrEqual(1))
+                .setExp(Account::email, emailArbitrary())
+                .setExp(Account::phoneNumber, phoneNumberArbitrary())
+                .setExp(Account::name, nameArbitrary())
+                .setExp(Account::encodedPassword, passwordArbitrary())
+        }
         .build()
 
-    fun getUser(): User {
-        val builder = fixtureMonkey.giveMeBuilder<User>()
-            .setExp(User::id, Arbitraries.longs().greaterOrEqual(1))
-            .setExp(User::name, Arbitraries.strings().alpha())
-            .setExp(User::email, emailArbitrary)
-            .setExp(User::phoneNumber, Arbitraries.strings().numeric())
-
-        return builder.sample()
+    inline fun <reified T>getBuilder(): ArbitraryBuilder<T> {
+        return fixtureMonkey.giveMeBuilder(T::class.java)
     }
 
-    fun getTeacher(): User {
-        val builder = fixtureMonkey.giveMeBuilder<User>()
-            .setExp(User::id, Arbitraries.longs().greaterOrEqual(1))
-            .setExp(User::name, Arbitraries.strings().alpha())
-            .setExp(User::email, emailArbitrary)
-            .setExp(User::phoneNumber, Arbitraries.strings().numeric())
-            .setExp(User::role, UserRole.TEACHER)
-
-        return builder.sample()
+    inline fun <reified T>sample(): T {
+        return getBuilder<T>().sample()
     }
 
-    fun getStudent(): User {
-        val builder = fixtureMonkey.giveMeBuilder<User>()
-            .setExp(User::id, Arbitraries.longs().greaterOrEqual(1))
-            .setExp(User::name, Arbitraries.strings().alpha())
-            .setExp(User::email, emailArbitrary)
-            .setExp(User::phoneNumber, Arbitraries.strings().numeric())
-            .setExp(User::role, UserRole.STUDENT)
+    fun getPhoneNumber() = phoneNumberArbitrary().sample()
+    fun getEmail() = emailArbitrary().sample()
+    fun getPassword() = passwordArbitrary().sample()
 
-        return builder.sample()
-    }
+    private fun nameArbitrary() = Arbitraries.strings().alpha()
+        .ofMinLength(2)
+        .ofMaxLength(10)
 
-    fun getEmail(): String {
-        return emailArbitrary.sample()
-    }
+    private fun phoneNumberArbitrary() = Arbitraries.strings().numeric().ofLength(8)
+        .map { "010-${it.chunked(4).joinToString("-")}" }
 
-    fun getPassword(): String {
-        return Arbitraries.strings().alpha().numeric().ofMinLength(6).ofMaxLength(10).sample()
-    }
-
-    private val emailArbitrary = Arbitraries.strings().alpha()
+    private fun emailArbitrary() = Arbitraries.strings().alpha()
         .ofMinLength(5)
         .ofMaxLength(10)
         .map { "$it@test.com" }
+
+    private fun passwordArbitrary() = Arbitraries.strings().alpha().numeric()
+        .ofMinLength(6)
+        .ofMaxLength(10)
 }

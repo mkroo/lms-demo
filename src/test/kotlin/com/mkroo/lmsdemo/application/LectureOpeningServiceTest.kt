@@ -1,23 +1,28 @@
 package com.mkroo.lmsdemo.application
 
+import com.mkroo.lmsdemo.dao.AccountRepository
 import com.mkroo.lmsdemo.dao.LectureRepository
-import com.mkroo.lmsdemo.domain.Lecture
+import com.mkroo.lmsdemo.dao.TeacherRepository
+import com.mkroo.lmsdemo.domain.Student
+import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
-import com.mkroo.lmsdemo.exception.NotPermittedException
 import com.mkroo.lmsdemo.helper.Fixture
+import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 
-class LectureOpeningServiceTest : BehaviorSpec({
+@DataJpaTest
+class LectureOpeningServiceTest(
+    private val lectureRepository: LectureRepository,
+    private val teacherRepository: TeacherRepository,
+    private val accountRepository: AccountRepository,
+) : BehaviorSpec({
     Given("강의 개설을 시도했을 때") {
-        val lectureRepository: LectureRepository = mockk(relaxed = true)
         val lectureOpeningService = LectureOpeningService(
-            lectureRepository = lectureRepository
+            lectureRepository = lectureRepository,
+            teacherRepository = teacherRepository
         )
 
         val request = LectureOpeningRequest(
@@ -27,35 +32,36 @@ class LectureOpeningServiceTest : BehaviorSpec({
         )
 
         When("강사가 개설을 시도하면") {
-            val user = Fixture.getTeacher()
-
-            val lecture: Lecture = mockk()
-            every { lectureRepository.save(any()) } returns lecture
+            val account = accountRepository.save(Fixture.sample<Teacher>())
+            val authentication = AccountJwtAuthentication(account.id, account.authorities)
 
             Then("강의가 개설된다") {
-                lectureOpeningService.openLecture(user, request)
+                val openedLecture = lectureOpeningService.openLecture(authentication, request)
 
-                val slot = slot<Lecture>()
-                verify { lectureRepository.save(capture(slot)) }
+                val savedLecture = lectureRepository.findById(openedLecture.id)
 
-                slot.captured.title shouldBe request.title
-                slot.captured.maxStudentCount shouldBe request.maxStudentCount
-                slot.captured.price shouldBe request.price
-                slot.captured.teacher shouldBe user
+                savedLecture?.title shouldBe request.title
+                savedLecture?.maxStudentCount shouldBe request.maxStudentCount
+                savedLecture?.price shouldBe request.price
+                savedLecture?.teacher shouldBe account
             }
 
             Then("개설된 강의를 반환한다") {
-                val openedLecture = lectureOpeningService.openLecture(user, request)
+                val openedLecture = lectureOpeningService.openLecture(authentication, request)
 
-                openedLecture shouldBe lecture
+                openedLecture.title shouldBe request.title
+                openedLecture.maxStudentCount shouldBe request.maxStudentCount
+                openedLecture.price shouldBe request.price
+                openedLecture.teacher shouldBe account
             }
         }
 
         When("학생이 개설을 시도하면") {
-            val user = Fixture.getStudent()
+            val account = accountRepository.save(Fixture.sample<Student>())
+            val authentication = AccountJwtAuthentication(account.id, account.authorities)
 
             Then("오류가 발생한다") {
-                shouldThrow<NotPermittedException> { lectureOpeningService.openLecture(user, request) }
+                shouldThrow<IllegalArgumentException> { lectureOpeningService.openLecture(authentication, request) }
             }
         }
     }
