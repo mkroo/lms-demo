@@ -59,6 +59,10 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
+
+    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.3")
+    implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.3")
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.3")
 }
 
 kotlin {
