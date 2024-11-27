@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -77,6 +78,47 @@ class LectureControllerTest(
                     )
                     .andExpect(
                         status().isNoContent
+                    )
+            }
+        }
+    }
+
+    Given("강의를 조회할 때") {
+        val requestBuilder = get("/lectures").contentType(MediaType.APPLICATION_JSON)
+        fun requestWithToken(token: String) = requestBuilder.header("Authorization", "Bearer $token")
+
+        When("인증 정보가 없으면") {
+            Then("401 오류를 반환한다") {
+                mockMvc
+                    .perform(requestWithToken(""))
+                    .andExpect(
+                        status().isUnauthorized
+                    )
+            }
+        }
+
+        When("학생이 조회하면") {
+            val studentAccount = accountRepository.save(Fixture.sample<Student>())
+            val token = jwtUtils.issue(studentAccount)
+
+            Then("강의 목록을 반환한다") {
+                mockMvc
+                    .perform(requestWithToken(token))
+                    .andExpect(
+                        status().isOk
+                    )
+            }
+        }
+
+        When("강사가 조회하면") {
+            val teacherAccount = accountRepository.save(Fixture.sample<Teacher>())
+            val token = jwtUtils.issue(teacherAccount)
+
+            Then("강의 목록을 반환한다") {
+                mockMvc
+                    .perform(requestWithToken(token))
+                    .andExpect(
+                        status().isOk
                     )
             }
         }

@@ -1,17 +1,20 @@
 package com.mkroo.lmsdemo.api
 
+import com.mkroo.lmsdemo.application.LectureListingService
 import com.mkroo.lmsdemo.application.LectureOpeningService
+import com.mkroo.lmsdemo.dto.LectureApplyStatus
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 class LectureController(
-    private val lectureOpeningService: LectureOpeningService
+    private val lectureOpeningService: LectureOpeningService,
+    private val lectureListingService: LectureListingService,
 ) {
     @PostMapping("/lectures")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -20,5 +23,13 @@ class LectureController(
         @RequestBody request: LectureOpeningRequest,
     ) {
         lectureOpeningService.openLecture(authentication, request)
+    }
+
+    @GetMapping("/lectures")
+    fun listLectures(
+        @PageableDefault(page = 0, size = 20)
+        pageable: Pageable
+    ) : Page<LectureApplyStatus> {
+        return lectureListingService.listLectures(pageable)
     }
 }

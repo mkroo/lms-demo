@@ -43,6 +43,7 @@ class SecurityConfig {
                 it
                     .requestMatchers(LOGIN_PATH, REGISTER_PATH).permitAll()
                     .requestMatchers(AntPathRequestMatcher("/lectures", "POST")).hasAuthority(Authority.OPEN_LECTURE.name)
+                    .requestMatchers(AntPathRequestMatcher("/lectures", "GET")).hasAuthority(Authority.LIST_LECTURES.name)
                     .anyRequest().authenticated()
             }
             .formLogin(FormLoginConfigurer<HttpSecurity>::disable)
