@@ -5,5 +5,6 @@ import org.springframework.data.repository.Repository
 
 interface LectureRepository : Repository<Lecture, Long> {
     fun findById(id: Long): Lecture?
+    fun findAllByIdIn(ids: Collection<Long>): List<Lecture>
     fun save(lecture: Lecture): Lecture
 }
