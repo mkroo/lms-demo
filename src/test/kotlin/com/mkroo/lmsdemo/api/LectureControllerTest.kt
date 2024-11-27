@@ -6,7 +6,6 @@ import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.helper.Fixture
 import com.mkroo.lmsdemo.security.JwtUtils
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -24,8 +23,6 @@ class LectureControllerTest(
     private val accountRepository: AccountRepository,
     private val jwtUtils: JwtUtils
 ) : BehaviorSpec({
-    isolationMode = IsolationMode.InstancePerLeaf
-
     Given("강의 개설을 할 때") {
         val requestBuilder = post("/lectures").contentType(MediaType.APPLICATION_JSON)
         val request = mapOf(
