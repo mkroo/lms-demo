@@ -10,5 +10,5 @@ class LectureApplication(
     @ManyToOne
     val lecture: Lecture,
     @ManyToOne
-    val student: Student
+    val student: Account,
 ) : AbstractEntity()

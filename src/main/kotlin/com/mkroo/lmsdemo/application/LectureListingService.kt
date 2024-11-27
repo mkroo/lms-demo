@@ -36,7 +36,7 @@ class LectureListingService(
                 path(Lecture::title),
                 path(Lecture::price),
                 path(Lecture::teacher).path(Teacher::name),
-                count(entity(LectureApplication::class)),
+                castToInt(count(entity(LectureApplication::class))),
                 path(Lecture::maxStudentCount),
                 path(Lecture::createdAt)
             ).from(
@@ -73,6 +73,10 @@ class LectureListingService(
 
     private fun divideIntegers(dividend: Expression<*>, divisor: Expression<*>): Expression<Double> {
         return customExpression(Double::class, "CAST({0} AS DOUBLE) / {1}", listOf(dividend, divisor))
+    }
+
+    private fun castToInt(expression: Expression<*>): Expression<Int> {
+        return customExpression(Int::class, "CAST({0} AS INTEGER)", listOf(expression))
     }
 
     private fun getResultList(query: SelectQuery<LectureApplyStatus>, pageable: Pageable): List<LectureApplyStatus> {

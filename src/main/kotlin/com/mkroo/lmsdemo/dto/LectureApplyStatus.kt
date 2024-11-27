@@ -7,7 +7,7 @@ data class LectureApplyStatus(
     val title: String,
     val price: Long,
     val teacherName: String,
-    val currentStudentCount: Long,
-    val maxStudentCount: Long,
+    val currentStudentCount: Int,
+    val maxStudentCount: Int,
     val createdAt: LocalDateTime,
 )

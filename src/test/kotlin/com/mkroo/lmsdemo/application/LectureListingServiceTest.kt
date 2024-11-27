@@ -23,7 +23,7 @@ class LectureListingServiceTest(
     Given("강의 목록을 정렬할때") {
         val lectureListingService = LectureListingService(entityManager)
 
-        val students = Fixture.getBuilder<Student>().sampleList(10).map { accountRepository.save(it) as Student }
+        val students = Fixture.getBuilder<Student>().sampleList(10).map { accountRepository.save(it) }
         val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
 
         val applyFourOfTen = Lecture(
@@ -65,7 +65,7 @@ class LectureListingServiceTest(
                 lecture.title,
                 lecture.price,
                 lecture.teacher.name,
-                lecture.getApplications().size.toLong(),
+                lecture.applicationCount,
                 lecture.maxStudentCount,
                 lecture.createdAt
             )
