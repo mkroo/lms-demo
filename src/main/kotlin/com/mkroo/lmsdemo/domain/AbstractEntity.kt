@@ -4,8 +4,11 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
+import org.hibernate.annotations.UpdateTimestamp
 import org.hibernate.proxy.HibernateProxy
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.domain.Persistable
+import java.time.LocalDateTime
 
 @MappedSuperclass
 abstract class AbstractEntity : Persistable<Long> {
@@ -13,6 +16,12 @@ abstract class AbstractEntity : Persistable<Long> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0L
         protected set
+
+    @CreatedDate
+    val createdAt: LocalDateTime = LocalDateTime.now()
+
+    @UpdateTimestamp
+    val updatedAt: LocalDateTime = LocalDateTime.now()
 
     override fun getId(): Long = id
     override fun isNew(): Boolean = id == 0L

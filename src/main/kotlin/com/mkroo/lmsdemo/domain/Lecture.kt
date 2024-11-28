@@ -1,8 +1,6 @@
 package com.mkroo.lmsdemo.domain
 
 import jakarta.persistence.*
-import org.springframework.data.annotation.CreatedDate
-import java.time.LocalDateTime
 
 @Entity
 @Table(name = "lectures")
@@ -13,9 +11,6 @@ class Lecture(
     @ManyToOne(optional = false)
     val teacher: Teacher
 ) : AbstractEntity() {
-    @CreatedDate
-    val createdAt: LocalDateTime = LocalDateTime.now()
-
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "lecture", cascade = [CascadeType.PERSIST])
     private val _applications: MutableList<LectureApplication> = mutableListOf()
 
