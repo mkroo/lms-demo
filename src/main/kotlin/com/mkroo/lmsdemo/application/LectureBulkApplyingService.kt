@@ -5,6 +5,7 @@ import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingRequest
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingResponse
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
+import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,6 +14,7 @@ class LectureBulkApplyingService(
     private val lectureRepository: LectureRepository,
     private val accountRepository: AccountRepository,
 ) {
+    @Secured("APPLY_LECTURE")
     fun applyLectures(authentication: AccountJwtAuthentication, request: LectureBulkApplyingRequest) : LectureBulkApplyingResponse {
         val student = accountRepository.findById(authentication.accountId) ?: throw IllegalArgumentException("Account not found")
 
