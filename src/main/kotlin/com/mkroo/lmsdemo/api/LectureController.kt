@@ -1,8 +1,11 @@
 package com.mkroo.lmsdemo.api
 
+import com.mkroo.lmsdemo.application.LectureBulkApplyingService
 import com.mkroo.lmsdemo.application.LectureListingService
 import com.mkroo.lmsdemo.application.LectureOpeningService
 import com.mkroo.lmsdemo.dto.LectureApplyStatus
+import com.mkroo.lmsdemo.dto.LectureBulkApplyingRequest
+import com.mkroo.lmsdemo.dto.LectureBulkApplyingResponse
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import org.springframework.data.domain.Page
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*
 class LectureController(
     private val lectureOpeningService: LectureOpeningService,
     private val lectureListingService: LectureListingService,
+    private val lectureBulkApplyingService: LectureBulkApplyingService,
 ) {
     @PostMapping("/lectures")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -31,5 +35,13 @@ class LectureController(
         pageable: Pageable
     ) : Page<LectureApplyStatus> {
         return lectureListingService.listLectures(pageable)
+    }
+
+    @PostMapping("/lecture-applications")
+    fun applyLectures(
+        @RequestBody request: LectureBulkApplyingRequest,
+        authentication: AccountJwtAuthentication,
+    ) : LectureBulkApplyingResponse {
+        return lectureBulkApplyingService.applyLectures(authentication, request)
     }
 }

@@ -44,7 +44,8 @@ class SecurityConfig {
                     .requestMatchers(LOGIN_PATH, REGISTER_PATH).permitAll()
                     .requestMatchers(AntPathRequestMatcher("/lectures", "POST")).hasAuthority(Authority.OPEN_LECTURE.name)
                     .requestMatchers(AntPathRequestMatcher("/lectures", "GET")).hasAuthority(Authority.LIST_LECTURES.name)
-                    .anyRequest().authenticated()
+                    .requestMatchers(AntPathRequestMatcher("/lecture-applications", "POST")).hasAuthority(Authority.APPLY_LECTURE.name)
+                    .anyRequest().denyAll()
             }
             .formLogin(FormLoginConfigurer<HttpSecurity>::disable)
             .csrf(CsrfConfigurer<HttpSecurity>::disable)
