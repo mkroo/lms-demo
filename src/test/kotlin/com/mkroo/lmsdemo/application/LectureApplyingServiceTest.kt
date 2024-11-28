@@ -6,6 +6,7 @@ import com.mkroo.lmsdemo.domain.Lecture
 import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.helper.Fixture
+import com.mkroo.lmsdemo.infrastructure.lockclient.InMemoryLockClient
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -17,7 +18,8 @@ class LectureApplyingServiceTest(
     private val lectureRepository: LectureRepository,
 ) : BehaviorSpec({
     Given("강의를 신청할 때") {
-        val lectureApplyingService = LectureApplyingService(lectureRepository)
+        val lockClient = InMemoryLockClient()
+        val lectureApplyingService = LectureApplyingService(lectureRepository = lectureRepository, lockClient = lockClient)
         val maxStudentCount = 10
 
         val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher

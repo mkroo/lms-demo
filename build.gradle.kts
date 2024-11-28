@@ -63,6 +63,8 @@ dependencies {
     implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.3")
     implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.3")
     implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.3")
+
+    implementation("org.redisson:redisson:3.38.1")
 }
 
 kotlin {
