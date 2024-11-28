@@ -4,6 +4,7 @@ import com.mkroo.lmsdemo.domain.Authority
 import com.mkroo.lmsdemo.security.AccountJwtAuthenticationProvider
 import com.mkroo.lmsdemo.security.JwtUtils
 import com.mkroo.lmsdemo.security.JwtAuthenticationFilter
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -20,6 +21,7 @@ import java.time.Duration
 
 @Configuration
 @EnableWebSecurity
+@EnableConfigurationProperties(JwtProperties::class)
 class SecurityConfig {
     companion object {
         private val LOGIN_PATH = AntPathRequestMatcher("/login", "POST")
@@ -27,17 +29,12 @@ class SecurityConfig {
     }
 
     @Bean
-    fun jwtUtils() : JwtUtils {
-        return JwtUtils("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855", Duration.ofDays(7))
+    fun jwtUtils(jwtProperties: JwtProperties) : JwtUtils {
+        return JwtUtils(jwtProperties.secret, jwtProperties.expiresIn)
     }
 
     @Bean
-    fun accountJwtAuthenticationProvider(jwtUtils: JwtUtils) : AccountJwtAuthenticationProvider {
-        return AccountJwtAuthenticationProvider(jwtUtils)
-    }
-
-    @Bean
-    fun filterChain(http: HttpSecurity, authenticationProvider: AccountJwtAuthenticationProvider) : SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, jwtUtils: JwtUtils) : SecurityFilterChain {
         return http
             .authorizeHttpRequests {
                 it
@@ -52,7 +49,7 @@ class SecurityConfig {
             .addFilterAt(
                 JwtAuthenticationFilter(
                     RequestMatchers.not(anyOf(LOGIN_PATH, REGISTER_PATH)),
-                    authenticationProvider
+                    AccountJwtAuthenticationProvider(jwtUtils)
                 ),
                 UsernamePasswordAuthenticationFilter::class.java
             )
