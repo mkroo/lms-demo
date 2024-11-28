@@ -7,8 +7,8 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "lecture_applications")
 class LectureApplication(
-    @ManyToOne
+    @ManyToOne(optional = false)
     val lecture: Lecture,
-    @ManyToOne
+    @ManyToOne(optional = false)
     val student: Account,
 ) : AbstractEntity()
