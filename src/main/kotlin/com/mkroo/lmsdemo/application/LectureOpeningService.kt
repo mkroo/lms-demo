@@ -14,7 +14,6 @@ class LectureOpeningService(
     private val lectureRepository: LectureRepository,
     private val teacherRepository: TeacherRepository,
 ) {
-    @Secured("OPEN_LECTURE")
     fun openLecture(authentication: AccountJwtAuthentication, request: LectureOpeningRequest) : Lecture {
         val teacher = teacherRepository.findById(authentication.accountId) ?: throw IllegalAuthenticationException("Teacher must be present")
 

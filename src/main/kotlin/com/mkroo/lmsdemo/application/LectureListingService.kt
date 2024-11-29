@@ -17,7 +17,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort.Order
-import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
 
 @Service
@@ -28,7 +27,6 @@ class LectureListingService(
         private val renderContext = JpqlRenderContext()
     }
 
-    @Secured("LIST_LECTURES")
     fun listLectures(pageable: Pageable): Page<LectureApplyStatus> {
         val selectQuery = jpql {
             selectNew<LectureApplyStatus>(
