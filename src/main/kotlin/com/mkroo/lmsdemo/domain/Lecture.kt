@@ -2,7 +2,6 @@ package com.mkroo.lmsdemo.domain
 
 import com.mkroo.lmsdemo.exception.LectureApplyingException
 import jakarta.persistence.*
-import org.slf4j.LoggerFactory
 
 @Entity
 @Table(name = "lectures")
