@@ -15,10 +15,10 @@ class LoginService(
     private val jwtUtils: JwtUtils
 ) {
     fun login(request: LoginRequest) : LoginResponse {
-        val account = accountRepository.findByEmail(request.email) ?: throw LoginFailureException("Account not found")
+        val account = accountRepository.findByEmail(request.email) ?: throw LoginFailureException("가입되지 않은 이메일 주소입니다.")
 
         passwordEncoder.matches(request.password, account.encodedPassword).takeIf { !it }?.let {
-            throw LoginFailureException("Wrong password")
+            throw LoginFailureException("비밀번호가 일치하지 않습니다.")
         }
 
         val token = jwtUtils.issue(account)
