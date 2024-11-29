@@ -21,10 +21,9 @@ class Lecture(
         get() = _applications.size
 
     fun apply(student: Account) {
-        val logger = LoggerFactory.getLogger(Lecture::class.java)
-        logger.info(this.toString())
-        logger.info(student.toString())
-        logger.info("LectureId: ${this.id}")
+        if (student.id == teacher.id) {
+            throw LectureApplyingException("자신의 강의는 신청할 수 없습니다.")
+        }
 
         if (_applications.size >= maxStudentCount) {
             throw LectureApplyingException("수강 인원이 마감되었습니다.")

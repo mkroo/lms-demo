@@ -1,6 +1,7 @@
 package com.mkroo.lmsdemo.application
 
 import com.mkroo.lmsdemo.dao.AccountRepository
+import com.mkroo.lmsdemo.dao.LectureApplicationRepository
 import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.domain.Lecture
 import com.mkroo.lmsdemo.domain.Student
@@ -17,10 +18,15 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 class LectureApplyingServiceTest(
     private val accountRepository: AccountRepository,
     private val lectureRepository: LectureRepository,
+    private val lectureApplicationRepository: LectureApplicationRepository,
 ) : BehaviorSpec({
     Given("강의를 신청할 때") {
         val lockClient = InMemoryLockClient()
-        val lectureApplyingService = LectureApplyingService(lectureRepository = lectureRepository, lockClient = lockClient)
+        val lectureApplyingService = LectureApplyingService(
+            lectureRepository = lectureRepository,
+            lectureApplicationRepository = lectureApplicationRepository,
+            lockClient = lockClient
+        )
         val maxStudentCount = 10
 
         val lecture = lectureRepository.save(
@@ -60,6 +66,15 @@ class LectureApplyingServiceTest(
 
         When("본인의 강의를 신청하는 경우") {
             val student = lecture.teacher
+
+            Then("강의 신청에 실패한다") {
+                shouldThrow<LectureApplyingException> { lectureApplyingService.applyLecture(student, lecture) }
+            }
+        }
+
+        When("이미 신청한 강의를 신청하는 경우") {
+            val student = accountRepository.save(Fixture.sample<Student>())
+            lectureApplyingService.applyLecture(student, lecture)
 
             Then("강의 신청에 실패한다") {
                 shouldThrow<LectureApplyingException> { lectureApplyingService.applyLecture(student, lecture) }
