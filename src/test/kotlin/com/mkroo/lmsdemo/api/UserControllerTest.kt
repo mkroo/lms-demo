@@ -34,7 +34,7 @@ class UserControllerTest(
                 mockMvc
                     .perform(requestBuilder.content(objectMapper.writeValueAsString(request)))
                     .andExpect(
-                        status().isNoContent
+                        status().isOk
                     )
             }
         }
@@ -86,7 +86,8 @@ class UserControllerTest(
                     .andExpect(
                         status().isOk
                     )
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.status").value("success"))
+                    .andExpect(jsonPath("$.data.token").isString())
             }
         }
 

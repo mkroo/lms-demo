@@ -2,13 +2,9 @@ package com.mkroo.lmsdemo.api
 
 import com.mkroo.lmsdemo.application.AuthService
 import com.mkroo.lmsdemo.application.LoginService
-import com.mkroo.lmsdemo.dto.LoginRequest
-import com.mkroo.lmsdemo.dto.LoginResponse
-import com.mkroo.lmsdemo.dto.RegisterUserRequest
-import org.springframework.http.HttpStatus
+import com.mkroo.lmsdemo.dto.*
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -17,13 +13,14 @@ class UserController(
     private val loginService: LoginService
 ) {
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun register(@RequestBody request: RegisterUserRequest) {
+    fun register(@RequestBody request: RegisterUserRequest) : RestApiEmptyResponse {
         authService.register(request)
+
+        return RestApiResponse.empty()
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): LoginResponse {
-        return loginService.login(request)
+    fun login(@RequestBody request: LoginRequest): RestApiResponse<LoginResponse> {
+        return loginService.login(request).let { RestApiResponse.success(it) }
     }
 }

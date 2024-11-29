@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
@@ -78,7 +79,7 @@ class LectureControllerTest(
                 mockMvc
                     .perform(lectureOpeningRequest(token))
                     .andExpect(
-                        status().isNoContent
+                        status().isOk
                     )
             }
         }
@@ -87,6 +88,18 @@ class LectureControllerTest(
     Given("강의를 조회할 때") {
         val requestBuilder = get("/lectures").contentType(MediaType.APPLICATION_JSON)
         fun lectureListingRequest(token: String) = requestBuilder.header("Authorization", "Bearer $token")
+
+        val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
+        List(3) {
+            lectureRepository.save(
+                Lecture(
+                    title = "강의 제목 $it",
+                    maxStudentCount = 10,
+                    price = 100000,
+                    teacher = teacher
+                )
+            )
+        }
 
         When("인증 정보가 없으면") {
             val token = createAnonymousToken()
@@ -118,8 +131,21 @@ class LectureControllerTest(
             Then("강의 목록을 반환한다") {
                 mockMvc
                     .perform(lectureListingRequest(token))
-                    .andExpect(
-                        status().isOk
+                    .andExpectAll(
+                        status().isOk,
+                        jsonPath("$.status").value("success"),
+                        jsonPath("$.data.items").isArray(),
+                        jsonPath("$.data.items[0].id").isNumber(),
+                        jsonPath("$.data.items[0].title").isString(),
+                        jsonPath("$.data.items[0].price").isNumber(),
+                        jsonPath("$.data.items[0].teacherName").isString(),
+                        jsonPath("$.data.items[0].currentStudentCount").isNumber(),
+                        jsonPath("$.data.items[0].maxStudentCount").isNumber(),
+                        jsonPath("$.data.items[0].createdAt").isString(),
+                        jsonPath("$.data.page").isNumber(),
+                        jsonPath("$.data.size").isNumber(),
+                        jsonPath("$.data.totalPages").isNumber(),
+                        jsonPath("$.data.totalItems").isNumber(),
                     )
             }
         }
@@ -181,6 +207,16 @@ class LectureControllerTest(
                     .perform(lectureApplyingRequest(token))
                     .andExpect(
                         status().isOk
+                    )
+                    .andExpectAll(
+                        status().isOk,
+                        jsonPath("$.status").value("success"),
+                        jsonPath("$.data.appliedLectureIds").isArray(),
+                        jsonPath("$.data.appliedLectureIds[0]").value(lectures[0].id),
+                        jsonPath("$.data.appliedLectureIds[1]").value(lectures[1].id),
+                        jsonPath("$.data.appliedLectureIds[2]").value(lectures[2].id),
+                        jsonPath("$.data.failedLectures").isArray(),
+                        jsonPath("$.data.failedLectures").isEmpty()
                     )
             }
         }
