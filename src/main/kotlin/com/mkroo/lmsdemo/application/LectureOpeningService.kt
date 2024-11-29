@@ -2,11 +2,10 @@ package com.mkroo.lmsdemo.application
 
 import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.dao.TeacherRepository
-import com.mkroo.lmsdemo.domain.*
+import com.mkroo.lmsdemo.domain.Lecture
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
 import com.mkroo.lmsdemo.exception.IllegalAuthenticationException
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
-import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
 
 @Service
