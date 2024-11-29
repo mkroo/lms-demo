@@ -4,6 +4,7 @@ import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.dao.TeacherRepository
 import com.mkroo.lmsdemo.domain.*
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
+import com.mkroo.lmsdemo.exception.IllegalAuthenticationException
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
@@ -15,7 +16,7 @@ class LectureOpeningService(
 ) {
     @Secured("OPEN_LECTURE")
     fun openLecture(authentication: AccountJwtAuthentication, request: LectureOpeningRequest) : Lecture {
-        val teacher = teacherRepository.findById(authentication.accountId) ?: throw IllegalArgumentException("Teacher must be present")
+        val teacher = teacherRepository.findById(authentication.accountId) ?: throw IllegalAuthenticationException("Teacher must be present")
 
         val lecture = Lecture(
             request.title,

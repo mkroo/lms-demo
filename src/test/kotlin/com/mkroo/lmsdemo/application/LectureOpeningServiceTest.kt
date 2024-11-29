@@ -6,6 +6,7 @@ import com.mkroo.lmsdemo.dao.TeacherRepository
 import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.LectureOpeningRequest
+import com.mkroo.lmsdemo.exception.IllegalAuthenticationException
 import com.mkroo.lmsdemo.helper.Fixture
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import io.kotest.assertions.throwables.shouldThrow
@@ -61,7 +62,7 @@ class LectureOpeningServiceTest(
             val authentication = AccountJwtAuthentication(account.id, account.authorities)
 
             Then("오류가 발생한다") {
-                shouldThrow<IllegalArgumentException> { lectureOpeningService.openLecture(authentication, request) }
+                shouldThrow<IllegalAuthenticationException> { lectureOpeningService.openLecture(authentication, request) }
             }
         }
     }
