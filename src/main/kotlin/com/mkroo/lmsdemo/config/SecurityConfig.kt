@@ -1,5 +1,6 @@
 package com.mkroo.lmsdemo.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.mkroo.lmsdemo.domain.Authority
 import com.mkroo.lmsdemo.security.AccountJwtAuthenticationProvider
 import com.mkroo.lmsdemo.security.JwtAuthenticationFilter
@@ -35,7 +36,7 @@ class SecurityConfig {
     }
 
     @Bean
-    fun filterChain(http: HttpSecurity, jwtUtils: JwtUtils) : SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, jwtUtils: JwtUtils, objectMapper: ObjectMapper) : SecurityFilterChain {
         val permitAllRequestMatcher : RequestMatcher = anyOf(LOGIN_PATH, REGISTER_PATH, PathRequest.toH2Console())
 
         return http
@@ -52,7 +53,8 @@ class SecurityConfig {
             .addFilterAt(
                 JwtAuthenticationFilter(
                     RequestMatchers.not(permitAllRequestMatcher),
-                    AccountJwtAuthenticationProvider(jwtUtils)
+                    AccountJwtAuthenticationProvider(jwtUtils),
+                    objectMapper
                 ),
                 UsernamePasswordAuthenticationFilter::class.java
             )

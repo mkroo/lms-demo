@@ -1,9 +1,12 @@
 package com.mkroo.lmsdemo.security
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.mkroo.lmsdemo.dto.RestApiResponse
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContextHolder
@@ -13,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class JwtAuthenticationFilter(
     private val authenticateRequestMatcher: RequestMatcher,
     private val authenticationProvider: AccountJwtAuthenticationProvider,
+    private val objectMapper: ObjectMapper,
 ) : OncePerRequestFilter() {
     companion object {
         private const val AUTHORIZATION_HEADER = "Authorization"
@@ -30,8 +34,12 @@ class JwtAuthenticationFilter(
                 val authentication = authenticationProvider.authenticate(token)
 
                 successfulAuthentication(request, response, filterChain, authentication)
-            } catch (e: AuthenticationException) {
+            } catch (e: AccountAuthenticationException) {
                 unsuccessfulAuthentication(request, response, e)
+            } catch (e: Exception) {
+                logger.warn("Unexpected error occurred (${request.method} ${request.requestURI}): ${e.message} (${e.javaClass.name})")
+
+                unsuccessfulAuthentication(request, response, AccountAuthenticationException("Unexpected error occurred", e))
             }
         } else {
             filterChain.doFilter(request, response)
@@ -46,7 +54,10 @@ class JwtAuthenticationFilter(
         val authorizationValue = request.getHeader(AUTHORIZATION_HEADER)
         if (authorizationValue.isNullOrBlank()) throw AccountAuthenticationException("Authorization header is missing")
 
-        val (scheme, token) = authorizationValue.split(" ")
+        val authorizationParts = authorizationValue.split(" ")
+        if (authorizationParts.size != 2) throw AccountAuthenticationException("Authorization header is malformed")
+
+        val (scheme, token) = authorizationParts
 
         if (scheme != AUTHORIZATION_SCHEME) throw AccountAuthenticationException("Authorization scheme is not supported")
 
@@ -66,10 +77,13 @@ class JwtAuthenticationFilter(
     private fun unsuccessfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        failed: AuthenticationException,
+        failed: AccountAuthenticationException,
     ) {
-        logger.error("Authentication failed(${request.method} ${request.requestURI}): ${failed.message}")
-        response.sendError(HttpStatus.UNAUTHORIZED.value(), failed.message)
+        logger.error("Authentication failed (${request.method} ${request.requestURI}): ${failed.message}")
+
+        response.status = HttpStatus.UNAUTHORIZED.value()
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        objectMapper.writeValue(response.writer, RestApiResponse.error(failed))
     }
 
     class AccountAuthenticationException(msg: String, t: Throwable? = null) : AuthenticationException(msg, t)
