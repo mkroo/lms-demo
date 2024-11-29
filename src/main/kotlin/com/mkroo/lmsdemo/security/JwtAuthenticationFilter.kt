@@ -68,7 +68,7 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         failed: AuthenticationException,
     ) {
-        logger.error("Authentication failed: ${failed.message}")
+        logger.error("Authentication failed(${request.method} ${request.requestURI}): ${failed.message}")
         response.sendError(HttpStatus.UNAUTHORIZED.value(), failed.message)
     }
 
