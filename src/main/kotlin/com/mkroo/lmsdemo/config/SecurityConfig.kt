@@ -2,8 +2,8 @@ package com.mkroo.lmsdemo.config
 
 import com.mkroo.lmsdemo.domain.Authority
 import com.mkroo.lmsdemo.security.AccountJwtAuthenticationProvider
-import com.mkroo.lmsdemo.security.JwtUtils
 import com.mkroo.lmsdemo.security.JwtAuthenticationFilter
+import com.mkroo.lmsdemo.security.JwtUtils
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatchers
 import org.springframework.security.web.util.matcher.RequestMatchers.anyOf
-import java.time.Duration
 
 
 @Configuration
