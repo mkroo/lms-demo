@@ -7,6 +7,7 @@ import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingRequest
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingResponse
+import com.mkroo.lmsdemo.exception.IllegalAuthenticationException
 import com.mkroo.lmsdemo.helper.Fixture
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import io.kotest.assertions.throwables.shouldThrow
@@ -45,16 +46,19 @@ class LectureBulkApplyingServiceTest(
             val request = LectureBulkApplyingRequest(listOf(1L, 2L, 3L))
 
             Then("오류가 발생한다") {
-                shouldThrow<IllegalArgumentException> { lectureBulkApplyingService.applyLectures(invalidAuth, request) }
+                shouldThrow<IllegalAuthenticationException> { lectureBulkApplyingService.applyLectures(invalidAuth, request) }
             }
         }
 
         When("ID에 해당하는 강의가 없는 경우") {
-            val request = LectureBulkApplyingRequest(listOf(0L))
+            val invalidLectureId = 0L
+            val request = LectureBulkApplyingRequest(listOf(invalidLectureId))
             val results = lectureBulkApplyingService.applyLectures(authentication, request)
 
-            Then("""실패 이유를 "Lecture not found"로 반환한다""") {
-                results.failedLectures[0].reason shouldBe "Lecture not found"
+            Then("실패 이유와 함께 신청 실패한 강의 ID 값을 반환한다") {
+                results.failedLectures shouldBe listOf(
+                    LectureBulkApplyingResponse.FailedLecture(invalidLectureId, "강의를 찾을 수 없습니다.")
+                )
             }
         }
 
@@ -75,8 +79,6 @@ class LectureBulkApplyingServiceTest(
             }
 
             Then("개별 강의 신청오류의 메세지를 이유로 반환한다") {
-                results.failedLectures[0].reason shouldBe lectureApplyException.localizedMessage
-
                 results.failedLectures shouldBe listOf(
                     LectureBulkApplyingResponse.FailedLecture(lectures[2].id, lectureApplyException.localizedMessage),
                 )

@@ -4,6 +4,7 @@ import com.mkroo.lmsdemo.dao.AccountRepository
 import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingRequest
 import com.mkroo.lmsdemo.dto.LectureBulkApplyingResponse
+import com.mkroo.lmsdemo.exception.IllegalAuthenticationException
 import com.mkroo.lmsdemo.security.AccountJwtAuthentication
 import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
@@ -16,7 +17,7 @@ class LectureBulkApplyingService(
 ) {
     @Secured("APPLY_LECTURE")
     fun applyLectures(authentication: AccountJwtAuthentication, request: LectureBulkApplyingRequest) : LectureBulkApplyingResponse {
-        val student = accountRepository.findById(authentication.accountId) ?: throw IllegalArgumentException("Account not found")
+        val student = accountRepository.findById(authentication.accountId) ?: throw IllegalAuthenticationException("Student must be present")
 
         val lectures = lectureRepository.findAllByIdIn(request.lectureIds)
         val lectureIdMap = lectures.associateBy { it.id }
@@ -27,7 +28,7 @@ class LectureBulkApplyingService(
         for (lectureId in request.lectureIds) {
             val lecture = lectureIdMap[lectureId]
             if (lecture == null) {
-                failedLectures.add(LectureBulkApplyingResponse.FailedLecture(lectureId, "Lecture not found"))
+                failedLectures.add(LectureBulkApplyingResponse.FailedLecture(lectureId, "강의를 찾을 수 없습니다."))
                 continue
             }
 
