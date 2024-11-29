@@ -19,6 +19,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatchers
 import org.springframework.security.web.util.matcher.RequestMatchers.anyOf
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 
 @Configuration
@@ -26,6 +29,7 @@ import org.springframework.security.web.util.matcher.RequestMatchers.anyOf
 @EnableConfigurationProperties(JwtProperties::class)
 class SecurityConfig {
     companion object {
+        private val PREFLIGHT_PATH = AntPathRequestMatcher("/**", "OPTIONS")
         private val LOGIN_PATH = AntPathRequestMatcher("/login", "POST")
         private val REGISTER_PATH = AntPathRequestMatcher("/register", "POST")
     }
@@ -37,7 +41,7 @@ class SecurityConfig {
 
     @Bean
     fun filterChain(http: HttpSecurity, jwtUtils: JwtUtils, objectMapper: ObjectMapper) : SecurityFilterChain {
-        val permitAllRequestMatcher : RequestMatcher = anyOf(LOGIN_PATH, REGISTER_PATH, PathRequest.toH2Console())
+        val permitAllRequestMatcher : RequestMatcher = anyOf(PREFLIGHT_PATH, LOGIN_PATH, REGISTER_PATH, PathRequest.toH2Console())
 
         return http
             .authorizeHttpRequests {
@@ -47,6 +51,9 @@ class SecurityConfig {
                     .requestMatchers(AntPathRequestMatcher("/lectures", "GET")).hasAuthority(Authority.LIST_LECTURES.name)
                     .requestMatchers(AntPathRequestMatcher("/lecture-applications", "POST")).hasAuthority(Authority.APPLY_LECTURE.name)
                     .anyRequest().denyAll()
+            }
+            .cors {
+                it.configurationSource(corsConfiguration())
             }
             .formLogin(FormLoginConfigurer<HttpSecurity>::disable)
             .csrf(CsrfConfigurer<HttpSecurity>::disable)
@@ -59,5 +66,18 @@ class SecurityConfig {
                 UsernamePasswordAuthenticationFilter::class.java
             )
             .build()
+    }
+
+    fun corsConfiguration(): CorsConfigurationSource {
+        val config = CorsConfiguration().apply {
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
+            allowedOriginPatterns = listOf("*")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+        }
+
+        return UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration("/**", config)
+        }
     }
 }
