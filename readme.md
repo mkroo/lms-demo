@@ -36,6 +36,11 @@ Spring boot와 Kotlin을 활용한 Learning Management System (LMS) 데모입니
     git clone https://github.com/mkroo/lms-demo.git
     cd repository
     ```
+3. Install [Redis](https://redis.io/download) for distributed Lock with Redis
+   ```bash
+   docker run --name lme-demo-redis -p 6379:6379 -d redis:7.4.1
+   ```
+   > 만약 `LockClient`의 구현체로 `RedissonLockClient`를 사용하지 않는다면 구성하지 않아도 무방합니다.
 
 ### Running Locally
 1. Install dependencies:
