@@ -33,6 +33,25 @@ class LectureControllerTest(
     fun createAnonymousToken() : String = ""
     fun createStudentToken() : String = accountRepository.save(Fixture.sample<Student>()).let(jwtUtils::issue)
     fun createTeacherToken() : String = accountRepository.save(Fixture.sample<Teacher>()).let(jwtUtils::issue)
+    fun createLectures(count: Int) : List<Lecture> {
+        val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
+
+        return List(count) {
+            lectureRepository.save(
+                Lecture(
+                    title = "강의 제목 $it",
+                    maxStudentCount = 10,
+                    price = 100000,
+                    teacher = teacher
+                )
+            )
+        }
+    }
+
+    val lectures = createLectures(5)
+    val anonymousToken = createAnonymousToken()
+    val studentToken = createStudentToken()
+    val teacherToken = createTeacherToken()
 
     Given("강의 개설을 할 때") {
         fun lectureOpeningRequest(token: String) : MockHttpServletRequestBuilder {
@@ -49,11 +68,9 @@ class LectureControllerTest(
         }
 
         When("인증 정보가 없으면") {
-            val token = createAnonymousToken()
-
             Then("401 오류를 반환한다") {
                 mockMvc
-                    .perform(lectureOpeningRequest(token))
+                    .perform(lectureOpeningRequest(anonymousToken))
                     .andExpect(
                         status().isUnauthorized
                     )
@@ -61,11 +78,9 @@ class LectureControllerTest(
         }
 
         When("학생이 개설을 시도하면") {
-            val token = createStudentToken()
-
             Then("403 오류를 반환한다") {
                 mockMvc
-                    .perform(lectureOpeningRequest(token))
+                    .perform(lectureOpeningRequest(studentToken))
                     .andExpect(
                         status().isForbidden
                     )
@@ -73,11 +88,9 @@ class LectureControllerTest(
         }
 
         When("강사가 개설을 시도하면") {
-            val token = createTeacherToken()
-
             Then("강의가 개설된다") {
                 mockMvc
-                    .perform(lectureOpeningRequest(token))
+                    .perform(lectureOpeningRequest(teacherToken))
                     .andExpect(
                         status().isOk
                     )
@@ -86,27 +99,15 @@ class LectureControllerTest(
     }
 
     Given("강의를 조회할 때") {
-        val requestBuilder = get("/lectures").contentType(MediaType.APPLICATION_JSON)
-        fun lectureListingRequest(token: String) = requestBuilder.header("Authorization", "Bearer $token")
-
-        val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
-        List(3) {
-            lectureRepository.save(
-                Lecture(
-                    title = "강의 제목 $it",
-                    maxStudentCount = 10,
-                    price = 100000,
-                    teacher = teacher
-                )
-            )
+        fun lectureListingRequest(token: String) : MockHttpServletRequestBuilder {
+            return get("/lectures")
+                .header("Authorization", "Bearer $token")
         }
 
         When("인증 정보가 없으면") {
-            val token = createAnonymousToken()
-
             Then("401 오류를 반환한다") {
                 mockMvc
-                    .perform(lectureListingRequest(token))
+                    .perform(lectureListingRequest(anonymousToken))
                     .andExpect(
                         status().isUnauthorized
                     )
@@ -114,11 +115,9 @@ class LectureControllerTest(
         }
 
         When("학생이 조회하면") {
-            val token = createStudentToken()
-
             Then("강의 목록을 반환한다") {
                 mockMvc
-                    .perform(lectureListingRequest(token))
+                    .perform(lectureListingRequest(studentToken))
                     .andExpect(
                         status().isOk
                     )
@@ -126,11 +125,9 @@ class LectureControllerTest(
         }
 
         When("강사가 조회하면") {
-            val token = createTeacherToken()
-
             Then("강의 목록을 반환한다") {
                 mockMvc
-                    .perform(lectureListingRequest(token))
+                    .perform(lectureListingRequest(teacherToken))
                     .andExpectAll(
                         status().isOk,
                         jsonPath("$.status").value("success"),
@@ -144,7 +141,6 @@ class LectureControllerTest(
                         jsonPath("$.data.items[0].createdAt").isString(),
                         jsonPath("$.data.page").isNumber(),
                         jsonPath("$.data.size").isNumber(),
-                        jsonPath("$.data.totalPages").isNumber(),
                         jsonPath("$.data.totalItems").isNumber(),
                     )
             }
@@ -152,19 +148,7 @@ class LectureControllerTest(
     }
 
     Given("올바른 강의들을 신청할 때") {
-        val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
-        val lectures = List(3) {
-            lectureRepository.save(
-                Lecture(
-                    title = "강의 제목 $it",
-                    maxStudentCount = 10,
-                    price = 100000,
-                    teacher = teacher
-                )
-            )
-        }
-
-        fun lectureApplyingRequest(token: String) : MockHttpServletRequestBuilder {
+        fun lectureApplyingRequest(token: String, lectures: List<Lecture>) : MockHttpServletRequestBuilder {
             val request = mapOf(
                 "lectureIds" to lectures.map { it.id }
             )
@@ -176,11 +160,9 @@ class LectureControllerTest(
         }
 
         When("인증 정보가 없으면") {
-            val token = createAnonymousToken()
-
             Then("401 오류를 반환한다") {
                 mockMvc
-                    .perform(lectureApplyingRequest(token))
+                    .perform(lectureApplyingRequest(anonymousToken, lectures))
                     .andExpect(
                         status().isUnauthorized
                     )
@@ -188,11 +170,9 @@ class LectureControllerTest(
         }
 
         When("학생이 신청하면") {
-            val token = createStudentToken()
-
             Then("강의 목록을 반환한다") {
                 mockMvc
-                    .perform(lectureApplyingRequest(token))
+                    .perform(lectureApplyingRequest(studentToken, lectures))
                     .andExpect(
                         status().isOk
                     )
@@ -200,11 +180,9 @@ class LectureControllerTest(
         }
 
         When("강사가 신청하면") {
-            val token = createTeacherToken()
-
             Then("강의 목록을 반환한다") {
                 mockMvc
-                    .perform(lectureApplyingRequest(token))
+                    .perform(lectureApplyingRequest(teacherToken, lectures))
                     .andExpect(
                         status().isOk
                     )

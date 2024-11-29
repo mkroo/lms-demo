@@ -52,7 +52,15 @@ class LectureListingService(
             )
         }
 
-        return PageImpl(getResultList(selectQuery, pageable), pageable, getMaxResults(selectQuery))
+        val countQuery = jpql {
+            select(
+                count(entity(Lecture::class))
+            ).from(
+                entity(Lecture::class)
+            )
+        }
+
+        return PageImpl(getResultList(selectQuery, pageable), pageable, getMaxResults(countQuery))
     }
 
     private fun Jpql.convertOrder(order: Order) : Sortable {
@@ -85,10 +93,8 @@ class LectureListingService(
             .resultList
     }
 
-    private fun getMaxResults(query: SelectQuery<LectureApplyStatus>): Long {
-        return entityManager.createQuery(query, renderContext)
-            .maxResults
-            .toLong()
+    private fun getMaxResults(countQuery: SelectQuery<Long>): Long {
+        return entityManager.createQuery(countQuery, renderContext).singleResult
     }
 }
 

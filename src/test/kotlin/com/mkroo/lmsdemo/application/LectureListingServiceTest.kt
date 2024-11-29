@@ -71,6 +71,15 @@ class LectureListingServiceTest(
             )
         }
 
+        Then("페이징 결과를 반환한다") {
+            val pageable = PageRequest.of(0, 1)
+
+            val lectureApplyStatues = lectureListingService.listLectures(pageable)
+
+            lectureApplyStatues.totalElements shouldBe 4
+            lectureApplyStatues.content.size shouldBe 1
+        }
+
         When("최근 등록순으로 정렬하면") {
 
             val sort = Sort.by(Sort.Order.desc("createdAt"))

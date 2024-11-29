@@ -33,14 +33,14 @@ data class RestApiResponse<T>(
         val page: Int,
         val size: Int,
         val totalPages: Int,
-        val totalItems: Int,
+        val totalItems: Long,
     ) {
         constructor(page: Page<T>) : this(
             items = page.content,
             page = page.number,
             size = page.size,
             totalPages = page.totalPages,
-            totalItems = page.numberOfElements,
+            totalItems = page.totalElements,
         )
     }
 }
