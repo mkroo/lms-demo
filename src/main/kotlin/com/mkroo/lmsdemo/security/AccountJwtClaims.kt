@@ -10,11 +10,10 @@ import java.util.*
 
 data class AccountJwtClaims(
     val accountId: Long,
-    val role: Set<GrantedAuthority>,
+    val authorities: Set<GrantedAuthority>,
 ) {
     companion object {
-        private const val ROLES_DELIMITER = ","
-        private const val ROLE_CLAIM_KEY = "role"
+        private const val AUTHORITIES_CLAIM_KEY = "authorities"
 
         fun of(account: Account) : AccountJwtClaims {
             return AccountJwtClaims(
@@ -31,9 +30,8 @@ data class AccountJwtClaims(
         }
 
         private fun obtainAuthorities(claims: Claims) : Set<GrantedAuthority> {
-            return claims.get(ROLE_CLAIM_KEY, String::class.java)
-                .split(ROLES_DELIMITER)
-                .map(Authority::valueOf)
+            return claims.get(AUTHORITIES_CLAIM_KEY, List::class.java)
+                .map { authorityString -> Authority.valueOf(authorityString.toString()) }
                 .toSet()
         }
     }
@@ -43,7 +41,7 @@ data class AccountJwtClaims(
             subject = accountId.toString()
             issuedAt = Date()
             expiration = Date(System.currentTimeMillis() + expiresIn.toMillis())
-            set(ROLE_CLAIM_KEY, role.joinToString(ROLES_DELIMITER))
+            set(AUTHORITIES_CLAIM_KEY, authorities)
         }
     }
 }

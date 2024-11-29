@@ -5,6 +5,6 @@ class AccountJwtAuthenticationProvider(
 ) {
     fun authenticate(token: String) : AccountJwtAuthentication {
         val claims = jwtUtils.parse(token)
-        return AccountJwtAuthentication(claims.accountId, claims.role)
+        return AccountJwtAuthentication(claims.accountId, claims.authorities)
     }
 }
