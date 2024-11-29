@@ -5,6 +5,7 @@ import com.mkroo.lmsdemo.domain.PasswordValidator
 import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.RegisterUserRequest
+import com.mkroo.lmsdemo.exception.UserRegistrationFieldException
 import com.mkroo.lmsdemo.helper.Fixture
 import com.navercorp.fixturemonkey.kotlin.setExp
 import io.kotest.assertions.throwables.shouldThrow
@@ -68,7 +69,7 @@ class AuthServiceTest(
             authService.register(duplicateEmailRequestBuilder.sample())
 
             Then("회원가입에 실패한다") {
-                shouldThrow<IllegalArgumentException> { authService.register(duplicateEmailRequestBuilder.sample()) }
+                shouldThrow<UserRegistrationFieldException> { authService.register(duplicateEmailRequestBuilder.sample()) }
             }
         }
 
@@ -80,7 +81,7 @@ class AuthServiceTest(
             authService.register(duplicateEmailRequestBuilder.sample())
 
             Then("회원가입에 실패한다") {
-                shouldThrow<IllegalArgumentException> { authService.register(duplicateEmailRequestBuilder.sample()) }
+                shouldThrow<UserRegistrationFieldException> { authService.register(duplicateEmailRequestBuilder.sample()) }
             }
         }
 
@@ -89,7 +90,7 @@ class AuthServiceTest(
             every { passwordValidator.isValid(request.password) } returns false
 
             Then("회원가입에 실패한다") {
-                shouldThrow<IllegalArgumentException> { authService.register(request) }
+                shouldThrow<UserRegistrationFieldException> { authService.register(request) }
             }
         }
 
