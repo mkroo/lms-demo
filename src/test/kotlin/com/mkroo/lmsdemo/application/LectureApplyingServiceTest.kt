@@ -22,12 +22,10 @@ class LectureApplyingServiceTest(
         val lectureApplyingService = LectureApplyingService(lectureRepository = lectureRepository, lockClient = lockClient)
         val maxStudentCount = 10
 
-        val teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher
-        val student = accountRepository.save(Fixture.sample<Student>())
         val lecture = lectureRepository.save(
             Lecture(
                 title = "favorite lecture",
-                teacher = teacher,
+                teacher = accountRepository.save(Fixture.sample<Teacher>()) as Teacher,
                 maxStudentCount = maxStudentCount,
                 price = 100000,
             )
@@ -36,6 +34,8 @@ class LectureApplyingServiceTest(
         When("강의가 이미 수강인원이 가득 찼다면") {
             val otherStudents = List(maxStudentCount) { accountRepository.save(Fixture.sample<Student>()) }
             otherStudents.forEach { lecture.apply(it) }
+
+            val student = accountRepository.save(Fixture.sample<Student>())
 
             Then("강의 신청에 실패한다") {
                 shouldThrow<IllegalStateException> { lectureApplyingService.applyLecture(student, lecture) }
@@ -46,12 +46,22 @@ class LectureApplyingServiceTest(
             val students = List(maxStudentCount - 1) { accountRepository.save(Fixture.sample<Student>()) }
             students.forEach { lecture.apply(it) }
 
+            val student = accountRepository.save(Fixture.sample<Student>())
+
             Then("강의 신청에 성공한다") {
                 val applicationBeforeApply = lecture.applicationCount
                 val appliedLecture = lectureApplyingService.applyLecture(student, lecture)
 
                 appliedLecture shouldBe lecture
                 appliedLecture.applicationCount shouldBe applicationBeforeApply + 1
+            }
+        }
+
+        When("본인의 강의를 신청하는 경우") {
+            val student = lecture.teacher
+
+            Then("강의 신청에 실패한다") {
+                shouldThrow<IllegalArgumentException> { lectureApplyingService.applyLecture(student, lecture) }
             }
         }
     }

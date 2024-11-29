@@ -16,6 +16,10 @@ class LectureApplyingService(
     fun applyLecture(student: Account, lecture: Lecture) : Lecture {
         val lockKey = "lecture:${lecture.id}"
 
+        if (student.id == lecture.teacher.id) {
+            throw IllegalArgumentException("자신의 강의를 신청할 수 없습니다.")
+        }
+
         return lockClient.tryLock(lockKey, Duration.ofSeconds(1), Duration.ofSeconds(3)) {
             lecture.apply(student)
             lectureRepository.save(lecture)
