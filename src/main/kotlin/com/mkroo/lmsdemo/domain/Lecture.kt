@@ -1,5 +1,6 @@
 package com.mkroo.lmsdemo.domain
 
+import com.mkroo.lmsdemo.exception.LectureApplyingException
 import jakarta.persistence.*
 
 @Entity
@@ -20,7 +21,7 @@ class Lecture(
 
     fun apply(student: Account) {
         if (_applications.size >= maxStudentCount) {
-            throw IllegalStateException("This lecture is full")
+            throw LectureApplyingException("수강 인원이 마감되었습니다.")
         }
 
         _applications.add(LectureApplication(this, student))

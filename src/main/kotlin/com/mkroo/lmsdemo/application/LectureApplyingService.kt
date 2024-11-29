@@ -3,6 +3,7 @@ package com.mkroo.lmsdemo.application
 import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.domain.Account
 import com.mkroo.lmsdemo.domain.Lecture
+import com.mkroo.lmsdemo.exception.LectureApplyingException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -17,7 +18,7 @@ class LectureApplyingService(
         val lockKey = "lecture:${lecture.id}"
 
         if (student.id == lecture.teacher.id) {
-            throw IllegalArgumentException("자신의 강의를 신청할 수 없습니다.")
+            throw LectureApplyingException("자신의 강의는 신청할 수 없습니다.")
         }
 
         return lockClient.tryLock(lockKey, Duration.ofSeconds(1), Duration.ofSeconds(3)) {

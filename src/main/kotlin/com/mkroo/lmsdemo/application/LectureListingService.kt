@@ -12,6 +12,7 @@ import com.mkroo.lmsdemo.domain.Lecture
 import com.mkroo.lmsdemo.domain.LectureApplication
 import com.mkroo.lmsdemo.domain.Teacher
 import com.mkroo.lmsdemo.dto.LectureApplyStatus
+import com.mkroo.lmsdemo.exception.LectureListingParamsException
 import jakarta.persistence.EntityManager
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -59,7 +60,7 @@ class LectureListingService(
             "createdAt" -> entity(Lecture::class).path(Lecture::createdAt)
             "applicationCount" -> count(entity(LectureApplication::class))
             "applicationRate" -> divideIntegers(count(entity(LectureApplication::class)), path(Lecture::maxStudentCount))
-            else -> throw IllegalArgumentException("Invalid order: ${order.property}")
+            else -> throw LectureListingParamsException("허용하지 않는 정렬 순서입니다. (${order.property})")
         }
 
         return if (order.isDescending) {

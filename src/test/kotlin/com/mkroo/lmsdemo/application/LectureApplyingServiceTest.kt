@@ -5,6 +5,7 @@ import com.mkroo.lmsdemo.dao.LectureRepository
 import com.mkroo.lmsdemo.domain.Lecture
 import com.mkroo.lmsdemo.domain.Student
 import com.mkroo.lmsdemo.domain.Teacher
+import com.mkroo.lmsdemo.exception.LectureApplyingException
 import com.mkroo.lmsdemo.helper.Fixture
 import com.mkroo.lmsdemo.infrastructure.lockclient.InMemoryLockClient
 import io.kotest.assertions.throwables.shouldThrow
@@ -38,7 +39,7 @@ class LectureApplyingServiceTest(
             val student = accountRepository.save(Fixture.sample<Student>())
 
             Then("강의 신청에 실패한다") {
-                shouldThrow<IllegalStateException> { lectureApplyingService.applyLecture(student, lecture) }
+                shouldThrow<LectureApplyingException> { lectureApplyingService.applyLecture(student, lecture) }
             }
         }
 
@@ -61,7 +62,7 @@ class LectureApplyingServiceTest(
             val student = lecture.teacher
 
             Then("강의 신청에 실패한다") {
-                shouldThrow<IllegalArgumentException> { lectureApplyingService.applyLecture(student, lecture) }
+                shouldThrow<LectureApplyingException> { lectureApplyingService.applyLecture(student, lecture) }
             }
         }
     }
